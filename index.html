@@ -168,9 +168,6 @@ function setStatus(msg, cls='') {
   statusEl.className = 'status ' + cls;
 }
 
-// chat ID is hardcoded
-async function fetchChatId() { realChatId = CHAT_ID; return true; }
-
 // ── CAMERA ──
 startCam.onclick = async () => {
   setStatus('Starting camera…');
@@ -227,7 +224,6 @@ startRec.onclick = async () => {
 
   recChunks = [];
 
-  // pick best supported format
   const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
     ? 'audio/webm;codecs=opus'
     : MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')
@@ -289,3 +285,4 @@ async function sendVoice(blob) {
 </script>
 </body>
 </html>
+
