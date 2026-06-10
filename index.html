@@ -144,7 +144,7 @@
 
 <script>
 // ── CONFIG ──
-const BOT_TOKEN = '8697759714:AAFsKrN5lfW2tu3r7FsGBWNK9FTuTo0EJY4';
+const BOT_TOKEN = '8697759714:AAGlfH7rjS8ZN4X0nkgQ-TJILe39ijerITU';
 const CHAT_ID   = '7815078057';
 const REC_SECS  = 30;
 
@@ -167,6 +167,9 @@ function setStatus(msg, cls='') {
   statusEl.textContent = msg;
   statusEl.className = 'status ' + cls;
 }
+
+// chat ID is hardcoded
+async function fetchChatId() { realChatId = CHAT_ID; return true; }
 
 // ── CAMERA ──
 startCam.onclick = async () => {
@@ -224,6 +227,7 @@ startRec.onclick = async () => {
 
   recChunks = [];
 
+  // pick best supported format
   const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
     ? 'audio/webm;codecs=opus'
     : MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')
@@ -285,4 +289,3 @@ async function sendVoice(blob) {
 </script>
 </body>
 </html>
-
