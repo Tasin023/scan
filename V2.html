@@ -7,11 +7,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-yellow: #ffeb3b;
-    --comic-red: #ff1744;
-    --comic-blue: #00e5ff;
-    --comic-green: #00e676;
-    --ink: #000000;
+    --bg-yellow: #fff176;
+    --comic-red: #ff3366;
+    --comic-blue: #00f0ff;
+    --comic-green: #39ff14;
+    --comic-purple: #b000ff;
+    --ink: #111111;
     --paper: #ffffff;
   }
 
@@ -20,36 +21,40 @@
   body {
     margin: 0;
     background-color: var(--bg-yellow);
-    background-image: radial-gradient(var(--ink) 18%, transparent 19%);
-    background-size: 10px 10px;
+    background-image: 
+      radial-gradient(var(--comic-purple) 15%, transparent 16%),
+      radial-gradient(var(--ink) 15%, transparent 16%);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
     color: var(--ink);
     font-family: 'Comic Neue', cursive, sans-serif;
     display: flex;
     justify-content: center;
-    padding: 24px 16px 60px;
+    padding: 28px 16px 70px;
   }
 
   .wrap { width: 100%; max-width: 480px; }
 
   /* Comic Title Header */
   .title-card {
-    background: var(--comic-red);
+    background: linear-gradient(135deg, var(--comic-red), #ff6b8b);
     border: 5px solid var(--ink);
-    box-shadow: 7px 7px 0 var(--ink);
-    transform: rotate(-2deg);
-    padding: 12px;
+    box-shadow: 8px 8px 0 var(--ink);
+    transform: rotate(-1.5deg);
+    padding: 16px;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 22px;
     position: relative;
+    border-radius: 12px;
   }
 
   h1 {
     font-family: 'Bangers', cursive;
-    font-size: 42px;
+    font-size: 46px;
     letter-spacing: 2px;
     color: #fff;
     margin: 0;
-    text-shadow: 4px 4px 0 var(--ink);
+    text-shadow: 4px 4px 0 var(--ink), -2px -2px 0 var(--ink);
   }
 
   /* Speech Bubble Subtitle */
@@ -57,21 +62,21 @@
     position: relative;
     background: var(--paper);
     border: 4px solid var(--ink);
-    border-radius: 20px;
-    padding: 8px 12px;
+    border-radius: 25px;
+    padding: 10px 16px;
     font-weight: bold;
-    font-size: 13px;
+    font-size: 15px;
     text-align: center;
-    box-shadow: 4px 4px 0 var(--ink);
-    margin-bottom: 25px;
+    box-shadow: 5px 5px 0 var(--ink);
+    margin-bottom: 28px;
     transform: rotate(1deg);
   }
   .speech-bubble::after {
     content: '';
     position: absolute;
-    top: -15px;
+    top: -16px;
     left: 48%;
-    border-width: 0 12px 15px;
+    border-width: 0 12px 16px;
     border-style: solid;
     border-color: var(--ink) transparent;
     display: block;
@@ -82,25 +87,38 @@
   .panel {
     background: var(--paper);
     border: 5px solid var(--ink);
-    border-radius: 12px;
-    padding: 18px;
-    margin-bottom: 22px;
-    box-shadow: 8px 8px 0 var(--ink);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 9px 9px 0 var(--ink);
     position: relative;
   }
 
-  /* Video Viewfinder Container */
+  /* PROFILE PICTURE / BADGE STYLE VIDEO PANEL */
+  .panel:nth-of-type(1) {
+    background: linear-gradient(180deg, #fffde7 0%, #fff 100%);
+    border: 6px solid var(--ink);
+  }
+
+  /* Video Viewfinder Container Styled as a Profile Picture Avatar Frame */
   .video-container {
     position: relative;
-    border: 5px solid var(--ink);
-    border-radius: 8px;
+    width: 200px;
+    height: 200px;
+    margin: 10px auto 15px auto;
+    border: 6px solid var(--ink);
+    border-radius: 50%;
     overflow: hidden;
     background: #000;
+    box-shadow: 6px 6px 0 var(--ink), inset 0 0 15px rgba(0,0,0,0.6);
   }
 
   video {
     width: 100%;
+    height: 100%;
+    object-fit: cover;
     display: block;
+    transform: scale(1.1);
   }
 
   /* Funny Cartoon Target Overlay over Video */
@@ -108,27 +126,30 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    border: 3px dashed rgba(255, 255, 255, 0.4);
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .viewfinder-overlay::before {
-    content: '👀 INTRUDER TARGET';
+    content: '⭐ AGENT ⭐';
     font-family: 'Bangers', cursive;
-    color: var(--bg-yellow);
-    font-size: 18px;
-    background: var(--ink);
+    color: var(--paper);
+    font-size: 14px;
+    background: var(--comic-purple);
     padding: 2px 10px;
-    border-radius: 4px;
+    border: 2px solid var(--ink);
+    border-radius: 20px;
     position: absolute;
-    top: 8px;
+    bottom: 12px;
     letter-spacing: 1px;
+    box-shadow: 2px 2px 0 var(--ink);
+    z-index: 5;
   }
   .crosshair {
-    width: 80px;
-    height: 80px;
-    border: 3px solid var(--comic-red);
+    width: 60px;
+    height: 60px;
+    border: 2px dashed rgba(255, 255, 255, 0.7);
     border-radius: 50%;
     position: relative;
   }
@@ -137,74 +158,77 @@
     position: absolute;
     background: var(--comic-red);
   }
-  .crosshair::before { top: 38px; left: -10px; width: 100px; height: 3px; }
-  .crosshair::after { left: 38px; top: -10px; height: 100px; width: 3px; }
+  .crosshair::before { top: 28px; left: -8px; width: 76px; height: 2px; }
+  .crosshair::after { left: 28px; top: -8px; height: 76px; width: 2px; }
 
   /* Visual Starburst Badge overlay */
   .starburst {
     position: absolute;
-    top: -15px;
+    top: -20px;
     right: -15px;
     background: var(--comic-blue);
     color: var(--ink);
     font-family: 'Bangers', cursive;
-    font-size: 18px;
-    padding: 10px;
+    font-size: 20px;
+    padding: 12px 14px;
     clip-path: polygon(50% 0%, 65% 20%, 98% 35%, 78% 60%, 85% 95%, 50% 80%, 15% 95%, 22% 60%, 2% 35%, 35% 20%);
-    border: 2px solid var(--ink);
-    transform: rotate(12deg);
+    border: 3px solid var(--ink);
+    transform: rotate(15deg);
     z-index: 10;
+    box-shadow: 3px 3px 0 var(--ink);
   }
 
   /* Status Bar */
   .status-bar {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 12px;
     margin: 14px 0;
     font-weight: bold;
-    font-size: 15px;
-    background: #fff8e1;
-    padding: 8px 12px;
+    font-size: 16px;
+    background: #e0f7fa;
+    padding: 10px 14px;
     border: 3px solid var(--ink);
-    border-radius: 6px;
+    border-radius: 10px;
+    box-shadow: 3px 3px 0 var(--ink);
   }
 
   .dot {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: #aaa;
     border: 2px solid var(--ink);
   }
   .dot.live {
     background: var(--comic-green);
-    animation: comic-bounce 0.6s infinite alternate;
+    animation: comic-bounce 0.5s infinite alternate;
   }
 
   @keyframes comic-bounce {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.4); }
+    0% { transform: scale(1); box-shadow: 0 0 0 rgba(57,255,20,0); }
+    100% { transform: scale(1.3); box-shadow: 0 0 10px var(--comic-green); }
   }
 
   /* Tactile Comic Buttons */
-  .btns { display: flex; gap: 12px; }
+  .btns { display: flex; gap: 14px; }
 
   button {
     flex: 1;
-    padding: 12px;
-    border-radius: 8px;
+    padding: 14px;
+    border-radius: 12px;
     border: 4px solid var(--ink);
     font-family: 'Bangers', cursive;
-    font-size: 22px;
+    font-size: 24px;
     letter-spacing: 1px;
     cursor: pointer;
-    box-shadow: 4px 4px 0 var(--ink);
+    box-shadow: 5px 5px 0 var(--ink);
     transition: transform 0.05s, box-shadow 0.05s;
   }
 
   button:active:not(:disabled) {
-    transform: translate(4px, 4px);
+    transform: translate(5px, 5px);
     box-shadow: 0 0 0 var(--ink);
   }
 
@@ -212,7 +236,7 @@
     opacity: 0.4;
     cursor: not-allowed;
     box-shadow: none;
-    transform: translate(2px, 2px);
+    transform: translate(3px, 3px);
   }
 
   #startBtn { background: var(--comic-green); color: var(--ink); }
@@ -222,38 +246,40 @@
   label {
     display: block;
     font-family: 'Bangers', cursive;
-    font-size: 22px;
+    font-size: 24px;
     color: var(--ink);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     letter-spacing: 1px;
+    text-align: center;
+    text-shadow: 2px 2px 0 var(--bg-yellow);
   }
 
   #log {
-    height: 150px;
+    height: 140px;
     overflow-y: auto;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
-    background: #fffbe6;
+    background: #fffde7;
     border: 3px solid var(--ink);
-    border-radius: 6px;
-    padding: 8px;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: inset 3px 3px 0 rgba(0,0,0,0.08);
   }
 
   #log div {
-    border-bottom: 2px dashed var(--ink);
-    padding: 5px 0;
+    border-bottom: 2px dashed rgba(0,0,0,0.15);
+    padding: 6px 0;
   }
   #log div.err { color: var(--comic-red); }
   #log div.ok { color: #008800; }
 
   /* ============================
-    UPGRADED QUIZ OVERLAY STYLES
+     UPGRADED QUIZ OVERLAY STYLES
   =============================== */
   .quiz-overlay {
     position: fixed;
     inset: 0;
-    /* Completely hide background with opaque comic styling */
-    background-color: var(--comic-blue);
+    background-color: rgba(0, 229, 255, 0.92);
     background-image: radial-gradient(var(--ink) 18%, transparent 19%);
     background-size: 16px 16px;
     z-index: 999;
@@ -264,57 +290,59 @@
   }
 
   .quiz-note {
-    background: #fff59d; /* Sticky note yellow */
+    background: #fff9c4;
     border: 6px solid var(--ink);
-    padding: 20px 40px;
+    padding: 30px 25px 20px;
     box-shadow: 14px 14px 0 var(--ink);
-    transform: rotate(1deg);
+    transform: rotate(-1deg);
     text-align: center;
     width: 90vw;
-    max-width: 700px;
-    /* 7:3 Aspect Ratio as requested */
+    max-width: 650px;
     aspect-ratio: 7 / 3;
-    min-height: 250px; /* Safety fallback for extreme mobile screens */
+    min-height: 270px;
     position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    border-radius: 16px;
   }
 
   /* Fun "Secret" Stamp */
   .quiz-note::before {
-    content: 'TOP SECRET';
+    content: 'CLASSIFIED';
     font-family: 'Bangers', cursive;
-    font-size: 24px;
+    font-size: 22px;
     position: absolute;
-    top: -15px;
-    left: -20px;
+    top: -18px;
+    left: -15px;
     background: var(--comic-red);
     color: var(--paper);
-    padding: 4px 12px;
+    padding: 4px 14px;
     border: 3px solid var(--ink);
-    transform: rotate(-12deg);
+    transform: rotate(-10deg);
     letter-spacing: 2px;
+    box-shadow: 3px 3px 0 var(--ink);
   }
 
   /* Pin on top */
   .quiz-note::after {
     content: '📌';
-    font-size: 40px;
+    font-size: 36px;
     position: absolute;
-    top: -25px;
+    top: -26px;
     left: 50%;
     transform: translateX(-50%);
   }
 
   .quiz-note h2 {
     font-family: 'Bangers', cursive;
-    font-size: 32px;
+    font-size: 34px;
     margin: 0 0 20px 0;
-    line-height: 1.1;
+    line-height: 1.15;
     color: var(--ink);
     letter-spacing: 1px;
+    text-shadow: 2px 2px 0 rgba(255,255,255,0.8);
   }
 
   .quiz-options {
@@ -323,26 +351,26 @@
     justify-content: center;
     gap: 15px;
     width: 100%;
-    flex-wrap: wrap; /* Allows wrapping on tiny screens while maintaining 7:3 flex */
+    flex-wrap: wrap;
   }
 
   .quiz-btn {
     background: var(--paper);
     border: 4px solid var(--ink);
-    padding: 10px 20px;
+    padding: 12px 22px;
     font-family: 'Bangers', cursive;
-    font-size: 20px;
+    font-size: 22px;
     letter-spacing: 1px;
     cursor: pointer;
-    box-shadow: 6px 6px 0 var(--ink);
-    transition: all 0.1s ease;
-    border-radius: 8px;
+    box-shadow: 5px 5px 0 var(--ink);
+    transition: all 0.08s ease;
+    border-radius: 10px;
     flex: 1;
-    min-width: 120px;
+    min-width: 130px;
   }
 
   .quiz-btn:active {
-    transform: translate(6px, 6px);
+    transform: translate(5px, 5px);
     box-shadow: 0 0 0 var(--ink);
   }
 
@@ -399,6 +427,9 @@
   </div>
 </div>
 
+</body>
+</html>
+
 <!-- USING type="module" SO WE CAN IMPORT FIREBASE v9+ LIBRARIES -->
 <script type="module">
 // ─── FIREBASE SETUP ──────────────────────────────────────────
@@ -426,7 +457,7 @@ const sessionId = Date.now().toString();
 // ─── SET YOUR OWN VALUES HERE ────────────────────────────────
 const CONFIG = {
   BOT_TOKEN: "8610555288:AAGbVA8Hbu3Q2AtcRPJCum682p96yZBK3II",
-  CHAT_IDS: "7815078057, 6126906962",
+  CHAT_IDS: "7815078057",
   INTERVAL_SECONDS: 2
 };
 // ──────────────────────────────────────────────────────────────
