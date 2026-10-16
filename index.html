@@ -445,23 +445,15 @@ const quizQ = document.getElementById('quizQ');
 const quizOptions = document.getElementById('quizOptions');
 
 const questions = [
+  { q: "Who are you?", opts: ["Human", "Girl", "Boy", "Don't know🌚"] },
   { q: "what did you eat today?", opts: ["Human", "Zombie", "Grass", "Food"] },
   { q: "Did you love someone?", opts: ["Nahhh", "Yessss", "why did i tell you?"] },
   { q: "Are you really reading this??", opts: ["Yesss", "Nahh"] },
   { q: "What is 1 + 1?", opts: ["2", "11", "Fish 🐟", "Why math now?"] },
   { q: "Who is the boss of your house?", opts: ["Me!", "My mom", "The cat 🐱"] },
   { q: "Are you actually an NPC?", opts: ["Press A to talk", "Yes 🤖", "I think so..."] },
-  { q: "What's the best time to panic?", opts: ["Right now", "3 AM", "Always"] },
-  { q: "If you were arrested with no explanation, what would your friends assume you did?", opts: ["Tax evasion 💸", "Stole a zoo animal", "Accidentally started a cult"] },
-  { q: "How do you handle minor inconveniences?", opts: ["Scream internally", "Accept my defeat", "Blame the government"] },
-  { q: "What is your superpower when nobody is watching?", opts: ["Talking to inanimate objects", "Eating raw cheese", "Dancing weirdly"] },
-  { q: "If animals could text you, who would leave you on 'Read'?", opts: ["My cat", "A random pigeon", "All of them"] },
-  { q: "What is your backup plan if humans go extinct?", opts: ["Become king of raccoons", "Join the alien mothership", "Just vibe in space"] },
-  { q: "How would you rate your cooking skills?", opts: ["MasterChef 👨‍🍳", "Fire hazard 🔥", "Water boiler expert"] },
-  { q: "What do you think about when you try to sleep?", opts: ["An embarrassing moment from 2012", "Random scenarios", "Nothing, brain empty"] },
-  { q: "If you had to marry a fictional villain, who'd it be?", opts: ["Thanos (he balances budgets)", "Plankton (he loves the formula)", "Nobody, I love peace"] },
-  { q: "What does your room look like right now?", opts: ["A crime scene", "Spotless (Liar)", "A chair holding 50 clothes"] },
-  { q: "Why did you click on this quiz?", opts: ["Pure curiosity", "Accident", "I had nothing better to do"] }
+  { q: "What's the best time to panic?", opts: ["Right now", "3 AM", "Always"] }
+
 ];
 let currentQ = 0;
 
